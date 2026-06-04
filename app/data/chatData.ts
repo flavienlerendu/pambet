@@ -5,7 +5,7 @@ export const agents = [
     messages: 465,
     role: "Le Maestro",
     color: "#f59e0b",
-    description: "Créateur du groupe. Chef d'orchestre silencieux. Capable de créer une playlist entière à 3h du matin.",
+    description: "Créateur du groupe. Chef d'orchestre efficace. Capable de créer une playlist entière à 3h du matin.",
     bestQuote: "L'OISEAU EST DANS LA CAGE LES GARS",
     secret: "A rêvé que Max avait tout découvert. A failli ne pas se remettre.",
   },
