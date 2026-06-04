@@ -6,6 +6,7 @@ import Image from "next/image";
 
 const INITIAL_COUNT = 24;
 const isVideo = (file: string) => file.endsWith(".mp4");
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const photoCount = allPhotos.filter((f) => !isVideo(f)).length;
 const videoCount = allPhotos.filter(isVideo).length;
@@ -51,7 +52,7 @@ export default function Gallery() {
             >
               {isVideo(photo) ? (
                 <video
-                  src={`/media/${encodeURIComponent(photo)}`}
+                  src={`${BASE}/media/${encodeURIComponent(photo)}`}
                   muted
                   loop
                   playsInline
@@ -121,7 +122,7 @@ export default function Gallery() {
             >
               {isVideo(selected) ? (
                 <video
-                  src={`/media/${selected}`}
+                  src={`${BASE}/media/${encodeURIComponent(selected)}`}
                   controls
                   autoPlay
                   className="w-full max-h-[85vh] object-contain rounded-lg"

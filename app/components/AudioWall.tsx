@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { allAudios } from "../data/chatData";
 import { useState, useRef } from "react";
 
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export default function AudioWall() {
   const [playing, setPlaying] = useState<string | null>(null);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
@@ -56,7 +58,7 @@ export default function AudioWall() {
               >
                 <audio
                   ref={(el) => { if (el) audioRefs.current.set(file, el); }}
-                  src={`/media/${file}`}
+                  src={`${BASE}/media/${file}`}
                   onEnded={() => setPlaying(null)}
                 />
                 <button
