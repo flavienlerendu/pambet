@@ -49,7 +49,7 @@ export default function Agents() {
                 />
 
                 {/* Portrait */}
-                <div className="relative w-full aspect-square">
+                <div className="relative w-full aspect-[4/3]">
                   <Image
                     src={`${BASE}/media/${encodeURIComponent(agent.photo)}`}
                     alt={agent.name}
