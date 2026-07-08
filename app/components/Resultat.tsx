@@ -7,8 +7,8 @@ const videos = [
   {
     id: "declaration",
     label: "Document #1 — La Déclaration",
-    title: "La réaction de Maxime",
-    subtitle: "Extrait du faux casting — non modifié, non censuré",
+    title: "La Performance.",
+    subtitle: "Une déclaration d'amour de haut vol",
     file: "resultat-declaration.mp4",
     tag: "CONFIDENTIEL",
     tagColor: "text-red-500 border-red-500",
