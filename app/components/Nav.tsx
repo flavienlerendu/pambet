@@ -12,6 +12,7 @@ const sections = [
   { id: "wrapped", label: "Stats" },
   { id: "gallery", label: "Photos" },
   { id: "audios", label: "Vocaux" },
+  { id: "resultat", label: "Résultat" },
   { id: "final", label: "Final" },
 ];
 

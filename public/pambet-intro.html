@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPÉRATION PAMBET — La Chasse</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif}
+#scene{display:block;width:100%;height:100%}
+
+/* ── UI OVERLAY ── */
+#ui{
+  position:fixed;inset:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:clamp(30px,6vh,70px);
+  z-index:10;
+}
+.mission-tag{
+  font-family:'Courier New',monospace;font-size:clamp(9px,1.2vw,13px);
+  letter-spacing:6px;color:rgba(255,200,50,.7);text-transform:uppercase;
+  margin-bottom:10px;
+  animation:fadeTagIn 2s ease 1s both;
+}
+.mission-title{
+  font-size:clamp(28px,5vw,72px);font-weight:900;
+  letter-spacing:clamp(3px,1.5vw,14px);
+  color:#fff;text-transform:uppercase;text-align:center;
+  text-shadow:0 0 40px rgba(255,160,0,.6),0 0 80px rgba(255,80,0,.3);
+  margin-bottom:12px;
+  animation:titleIn 1.2s cubic-bezier(.16,1,.3,1) 0.5s both;
+}
+.mission-sub{
+  font-size:clamp(11px,1.5vw,18px);letter-spacing:4px;
+  color:rgba(255,255,255,.55);text-align:center;margin-bottom:30px;
+  animation:fadeTagIn 2s ease 1.5s both;
+}
+#launch-btn{
+  pointer-events:all;cursor:pointer;
+  font-family:'Courier New',monospace;font-size:clamp(12px,1.4vw,17px);
+  letter-spacing:5px;text-transform:uppercase;
+  color:#fff;background:transparent;
+  border:2px solid rgba(255,160,0,.8);
+  padding:14px 40px;
+  position:relative;overflow:hidden;
+  transition:color .3s;
+  animation:fadeTagIn 2s ease 2s both;
+}
+#launch-btn::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,130,0,.85);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .35s ease;z-index:-1;
+}
+#launch-btn:hover::before{transform:scaleX(1)}
+#launch-btn:hover{color:#000}
+
+/* ── BIOME LABEL ── */
+#biome-label{
+  position:fixed;top:clamp(16px,3vh,30px);left:50%;transform:translateX(-50%);
+  font-family:'Courier New',monospace;font-size:clamp(9px,1vw,12px);
+  letter-spacing:5px;color:rgba(255,255,255,.35);text-transform:uppercase;
+  z-index:10;pointer-events:none;transition:opacity .8s;
+}
+
+@keyframes titleIn{
+  from{opacity:0;transform:scale(1.15) translateY(10px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+@keyframes fadeTagIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="ui">
+  <div class="mission-tag">// Mission Classifiée — ANP-001</div>
+  <div class="mission-title">MISSION : OPÉRATION PAMBET</div>
+  <div class="mission-sub">Quatre tortues. Un oiseau rare. Une seule mission.</div>
+  <button id="launch-btn" onclick="boost()">LANCER LA MISSION</button>
+</div>
+<div id="biome-label">FORÊT TROPICALE</div>
+
+<script>
+/* =============================================================
+   SETUP
+============================================================= */
+const canvas = document.getElementById('scene');
+const ctx    = canvas.getContext('2d');
+let W, H;
+
+function resize(){
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* =============================================================
+   STATE
+============================================================= */
+let t         = 0;       // global time (seconds)
+let speed     = 1;       // multiplier
+let boosted   = false;
+let boostTimer= 0;
+let camShake  = 0;
+let particles = [];
+let splashes  = [];
+let leaves    = [];
+
+/* biome system */
+let biomeIdx     = 0;
+let biomeProgress= 0;   // 0→1 within current biome
+const BIOME_LEN  = 28;  // seconds per biome at speed=1
+const BIOME_NAMES= ['FORÊT TROPICALE','MONTAGNE','DÉSERT','VILLE DE NUIT','TOITS','ÉGOUTS','RIVIÈRE','PONT SUSPENDU'];
+const biomeLabel = document.getElementById('biome-label');
+
+/* =============================================================
+   COLOUR PALETTES per biome
+   each: sky top, sky bot, ground, accent
+============================================================= */
+const BIOMES = [
+  // 0 forest
+  { sky:['#0d3b2e','#1a6b45'], ground:'#2d5a1b', accent:'#39ff14', fog:null },
+  // 1 mountain
+  { sky:['#1a0a2e','#4a2060'], ground:'#5c4a3a', accent:'#c0a0ff', fog:'rgba(200,180,255,0.08)' },
+  // 2 desert
+  { sky:['#8b2500','#e06b00'], ground:'#c8840a', accent:'#ffdd44', fog:null },
+  // 3 city
+  { sky:['#050510','#0a0a30'], ground:'#1a1a2e', accent:'#00bfff', fog:null },
+  // 4 rooftops
+  { sky:['#050510','#0d0d30'], ground:'#2a2a3e', accent:'#ff6600', fog:null },
+  // 5 sewers
+  { sky:['#060e06','#0a1a0a'], ground:'#0d1a0d', accent:'#3aff3a', fog:'rgba(30,80,30,0.15)' },
+  // 6 river
+  { sky:['#1a2a4a','#2a4a6a'], ground:'#0d3a5a', accent:'#00ffee', fog:'rgba(100,180,220,0.06)' },
+  // 7 bridge
+  { sky:['#2a0505','#8b1a00'], ground:'#3a2a1a', accent:'#ff4400', fog:null },
+];
+
+/* =============================================================
+   PARTICLE SYSTEM
+============================================================= */
+function spawnDust(x, y){
+  for(let i=0;i<3;i++){
+    particles.push({
+      x, y,
+      vx: -(1+Math.random()*3)*speed,
+      vy: -(Math.random()*1.5),
+      life:1, maxLife:1,
+      r: 3+Math.random()*5,
+      color:'rgba(200,180,140,'
+    });
+  }
+}
+function spawnLeaf(x, y){
+  leaves.push({
+    x, y: y - Math.random()*60,
+    vx: -(2+Math.random()*4),
+    vy: Math.random()*2-1,
+    rot: Math.random()*Math.PI*2,
+    rotV: (Math.random()-.5)*0.2,
+    life:1, maxLife:1+Math.random(),
+    size: 4+Math.random()*6,
+    color: Math.random()<.5 ? '#5a9a20':'#2a7a10'
+  });
+}
+function spawnSplash(x, y){
+  for(let i=0;i<8;i++){
+    const ang = -Math.PI + Math.random()*Math.PI;
+    const spd = 2+Math.random()*5;
+    splashes.push({
+      x, y,
+      vx: Math.cos(ang)*spd,
+      vy: Math.sin(ang)*spd - 3,
+      life:1, maxLife:.6,
+      r: 2+Math.random()*3
+    });
+  }
+}
+
+/* =============================================================
+   BIRD
+============================================================= */
+const bird = {
+  x: 0, y: 0,      // screen-space
+  baseX: 0.72,      // fraction of W
+  baseY: 0.32,      // fraction of H
+  wobbleY: 0,
+  wobbleX: 0,
+  wingPhase: 0,
+  diveTimer: 0,
+  diveDuration: 0,
+  isDiving: false,
+};
+
+function updateBird(dt){
+  bird.wingPhase += dt * 8 * speed;
+
+  if(!bird.isDiving && Math.random() < 0.004 * speed){
+    bird.isDiving   = true;
+    bird.diveTimer  = 0;
+    bird.diveDuration = 0.8 + Math.random()*0.6;
+  }
+  if(bird.isDiving){
+    bird.diveTimer += dt * speed;
+    if(bird.diveTimer >= bird.diveDuration) bird.isDiving = false;
+  }
+
+  const diveY = bird.isDiving
+    ? Math.sin(bird.diveTimer / bird.diveDuration * Math.PI) * 80
+    : 0;
+
+  bird.wobbleY = Math.sin(t * 1.3 * speed) * 18 + Math.sin(t * 2.7 * speed) * 8 + diveY;
+  bird.wobbleX = Math.sin(t * 0.9 * speed) * 30;
+
+  bird.x = W * bird.baseX + bird.wobbleX;
+  bird.y = H * bird.baseY + bird.wobbleY;
+}
+
+function drawBird(ctx){
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+
+  const wing = Math.sin(bird.wingPhase) * 0.4;
+  const sc   = 1 + Math.sin(bird.wingPhase*2)*.05;
+  ctx.scale(sc, sc);
+
+  // Glow
+  const grd = ctx.createRadialGradient(0,0,2,0,0,28);
+  grd.addColorStop(0,'rgba(255,220,80,.5)');
+  grd.addColorStop(1,'rgba(255,140,0,0)');
+  ctx.beginPath(); ctx.arc(0,0,28,0,Math.PI*2);
+  ctx.fillStyle=grd; ctx.fill();
+
+  // wings
+  ctx.save(); ctx.rotate(-0.3 + wing);
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.bezierCurveTo(-30,-20,-50,-5,-40,15);
+  ctx.fillStyle='#e05c00'; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.bezierCurveTo(-20,-30,-35,-30,-30,0);
+  ctx.fillStyle='#ff8c00'; ctx.fill();
+  ctx.restore();
+
+  ctx.save(); ctx.scale(-1,1); ctx.rotate(-0.3 + wing);
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.bezierCurveTo(-30,-20,-50,-5,-40,15);
+  ctx.fillStyle='#e05c00'; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.bezierCurveTo(-20,-30,-35,-30,-30,0);
+  ctx.fillStyle='#ff8c00'; ctx.fill();
+  ctx.restore();
+
+  // tail
+  ctx.beginPath();
+  ctx.moveTo(-5,8); ctx.lineTo(5,8); ctx.lineTo(0,30); ctx.closePath();
+  ctx.fillStyle='#ff4400'; ctx.fill();
+
+  // body
+  ctx.beginPath();
+  ctx.ellipse(0,2,10,12,0,0,Math.PI*2);
+  ctx.fillStyle='#ffaa00'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // head
+  ctx.beginPath(); ctx.arc(0,-12,7,0,Math.PI*2);
+  ctx.fillStyle='#ffe066'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // eye
+  ctx.beginPath(); ctx.arc(4,-13,2.5,0,Math.PI*2);
+  ctx.fillStyle='#fff'; ctx.fill();
+  ctx.beginPath(); ctx.arc(4.5,-13,1.5,0,Math.PI*2);
+  ctx.fillStyle='#000'; ctx.fill();
+
+  // beak
+  ctx.beginPath();
+  ctx.moveTo(7,-12); ctx.lineTo(16,-10); ctx.lineTo(7,-9); ctx.closePath();
+  ctx.fillStyle='#ffdd00'; ctx.fill();
+
+  // crown plume
+  ctx.strokeStyle='#ff2200'; ctx.lineWidth=2; ctx.lineCap='round';
+  for(let i=-1;i<=1;i++){
+    ctx.beginPath();
+    ctx.moveTo(i*3,-18);
+    ctx.lineTo(i*5-2,-26+Math.sin(t*4+i)*3);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+/* =============================================================
+   TURTLE DRAWING
+   mask colors: Leo=#4488ff, Raph=#ff4422, Mikey=#ff9900, Don=#cc44ff
+============================================================= */
+function drawTurtle(ctx, x, y, tLocal, maskColor, personality){
+  const phase = tLocal * 8 * speed;
+  const bob   = Math.sin(phase) * 5 * (personality.bouncy||1);
+  const lean  = (personality.lean||0) * Math.PI/180;
+  const lookBack = personality.stratege && Math.sin(tLocal*0.4)>0.7;
+
+  ctx.save();
+  ctx.translate(x, y + bob);
+  if(lean) ctx.rotate(lean);
+
+  const sc = personality.scale || 1;
+  ctx.scale(sc, sc);
+
+  // ── Shadow ──
+  ctx.save();
+  ctx.translate(0, 10);
+  ctx.scale(1, 0.3);
+  ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fill();
+  ctx.restore();
+
+  // ── Legs ──
+  const legSwing = Math.sin(phase) * 25;
+  const sc2 = personality.aggressive ? 1.1 : 1;
+
+  // back leg
+  ctx.save(); ctx.rotate((-legSwing * sc2)*Math.PI/180);
+  ctx.beginPath();
+  ctx.moveTo(-5, 5); ctx.lineTo(-6, 30);
+  ctx.strokeStyle='#2d6b1a'; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+  // foot
+  ctx.beginPath(); ctx.ellipse(-6, 32, 8, 5, -0.2, 0, Math.PI*2);
+  ctx.fillStyle='#2d6b1a'; ctx.fill();
+  ctx.restore();
+
+  // front leg
+  ctx.save(); ctx.rotate((legSwing * sc2)*Math.PI/180);
+  ctx.beginPath();
+  ctx.moveTo(5, 5); ctx.lineTo(6, 30);
+  ctx.strokeStyle='#3a8a22'; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(6, 32, 8, 5, 0.2, 0, Math.PI*2);
+  ctx.fillStyle='#3a8a22'; ctx.fill();
+  ctx.restore();
+
+  // ── Arms ──
+  const armSwing = Math.sin(phase) * (personality.aggressive ? 40 : 28);
+
+  // back arm
+  ctx.save(); ctx.rotate(-armSwing*Math.PI/180);
+  ctx.beginPath(); ctx.moveTo(-8,-5); ctx.lineTo(-20,-25);
+  ctx.strokeStyle='#2d6b1a'; ctx.lineWidth=8; ctx.lineCap='round'; ctx.stroke();
+  // weapon back arm
+  drawWeapon(ctx, personality.weapon, -20, -25, -armSwing, false);
+  ctx.restore();
+
+  // front arm
+  ctx.save(); ctx.rotate(armSwing*Math.PI/180);
+  ctx.beginPath(); ctx.moveTo(8,-5); ctx.lineTo(20,-25);
+  ctx.strokeStyle='#3a8a22'; ctx.lineWidth=8; ctx.lineCap='round'; ctx.stroke();
+  drawWeapon(ctx, personality.weapon, 20, -25, armSwing, true);
+  ctx.restore();
+
+  // ── Shell ──
+  ctx.beginPath();
+  ctx.ellipse(0,-5,18,14,0,0,Math.PI*2);
+  ctx.fillStyle='#3a5a18'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=2; ctx.stroke();
+  // shell pattern
+  ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(-9,-5); ctx.lineTo(0,-14); ctx.lineTo(9,-5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-9,-5); ctx.lineTo(-9,3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(9,-5); ctx.lineTo(9,3); ctx.stroke();
+
+  // ── Body ──
+  ctx.beginPath();
+  ctx.ellipse(0, 2, 15, 18, 0, 0, Math.PI*2);
+  ctx.fillStyle='#4a9a28'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=2; ctx.stroke();
+
+  // belly
+  ctx.beginPath();
+  ctx.ellipse(0, 5, 10, 12, 0, 0, Math.PI*2);
+  ctx.fillStyle='#a8c870'; ctx.fill();
+
+  // ── Head ──
+  const headTilt = lookBack ? -0.5 : (personality.aggressive ? 0.15 : 0);
+  ctx.save();
+  ctx.translate(0, -18);
+  ctx.rotate(headTilt);
+  ctx.beginPath(); ctx.ellipse(6, 0, 12, 11, 0.3, 0, Math.PI*2);
+  ctx.fillStyle='#5ab830'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=2; ctx.stroke();
+
+  // ── Mask ──
+  ctx.beginPath();
+  ctx.ellipse(8, -2, 9, 5, 0.2, 0, Math.PI*2);
+  ctx.fillStyle=maskColor; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=1; ctx.stroke();
+  // mask tails
+  ctx.strokeStyle=maskColor; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(18,-2); ctx.lineTo(28, 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(18, 2); ctx.lineTo(26, 8); ctx.stroke();
+
+  // ── Eyes ──
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.ellipse(5,-2,3,4,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(13,-2,3,4,0,0,Math.PI*2); ctx.fill();
+  // pupils
+  ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.arc(6,-2,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(14,-2,2,0,Math.PI*2); ctx.fill();
+  // expression
+  if(personality.aggressive){
+    ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(3,-6); ctx.lineTo(8,-4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(11,-6); ctx.lineTo(16,-4); ctx.stroke();
+  }
+
+  // mouth
+  ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=1.5; ctx.lineCap='round';
+  if(personality.happy){
+    ctx.beginPath(); ctx.arc(9,3,4,0.2,Math.PI-0.2); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(5,3); ctx.lineTo(13,3); ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function drawWeapon(ctx, type, x, y, ang, front){
+  ctx.save(); ctx.translate(x,y);
+  ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineCap='round';
+  switch(type){
+    case 'swords':
+      ctx.strokeStyle='#c0c8d0'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(front?14:-14,-20); ctx.stroke();
+      ctx.strokeStyle='#8a6a2a'; ctx.lineWidth=5;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(front?4:-4,-6); ctx.stroke();
+      break;
+    case 'sais':
+      ctx.strokeStyle='#a0a8b0'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-22); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-4,-6); ctx.lineTo(4,-6); ctx.stroke();
+      break;
+    case 'nunchucks':
+      ctx.strokeStyle='#8b5e3c'; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-10); ctx.stroke();
+      ctx.strokeStyle='#aaa'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(front?6:-6,-18); ctx.stroke();
+      ctx.strokeStyle='#8b5e3c'; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(front?6:-6,-18); ctx.lineTo(front?6:-6,-28); ctx.stroke();
+      break;
+    case 'staff':
+      ctx.strokeStyle='#8b5e3c'; ctx.lineWidth=5;
+      ctx.beginPath(); ctx.moveTo(-4,-4); ctx.lineTo(front?10:-10,-26); ctx.stroke();
+      break;
+  }
+  ctx.restore();
+}
+
+/* =============================================================
+   BACKGROUND DRAWING per biome
+   worldX: how far we've scrolled (in pixels)
+============================================================= */
+function drawBackground(ctx, biomeA, biomeB, blend, worldX){
+  // Lerp sky colors
+  function lerpColor(a, b, t){
+    const pa = parseInt(a.slice(1),16), pb = parseInt(b.slice(1),16);
+    const r = Math.round(((pa>>16)&255)*(1-t) + ((pb>>16)&255)*t);
+    const g = Math.round(((pa>>8)&255)*(1-t) + ((pb>>8)&255)*t);
+    const bv= Math.round((pa&255)*(1-t) + (pb&255)*t);
+    return `rgb(${r},${g},${bv})`;
+  }
+  const skyTop = lerpColor(biomeA.sky[0], biomeB.sky[0], blend);
+  const skyBot = lerpColor(biomeA.sky[1], biomeB.sky[1], blend);
+
+  // Sky gradient
+  const grd = ctx.createLinearGradient(0,0,0,H*0.65);
+  grd.addColorStop(0, skyTop);
+  grd.addColorStop(1, skyBot);
+  ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+
+  // Draw specific biome elements (interpolated alpha)
+  drawBiomeElements(ctx, biomeA, worldX, 1-blend);
+  if(blend > 0.01) drawBiomeElements(ctx, biomeB, worldX, blend);
+
+  // Fog overlay
+  if(biomeA.fog){
+    ctx.fillStyle=biomeA.fog;
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function drawBiomeElements(ctx, biome, worldX, alpha){
+  if(alpha < 0.01) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+
+  const idx = BIOMES.indexOf(biome);
+  switch(idx){
+    case 0: drawForest(ctx,worldX); break;
+    case 1: drawMountain(ctx,worldX); break;
+    case 2: drawDesert(ctx,worldX); break;
+    case 3: drawCity(ctx,worldX); break;
+    case 4: drawRooftops(ctx,worldX); break;
+    case 5: drawSewers(ctx,worldX); break;
+    case 6: drawRiver(ctx,worldX); break;
+    case 7: drawBridge(ctx,worldX); break;
+  }
+
+  ctx.restore();
+}
+
+/* ── Parallax helper ── */
+function px(worldX, factor){ return -(worldX * factor) % W; }
+function pxTile(worldX, factor, w){
+  const offset = (worldX * factor) % w;
+  return -offset;
+}
+
+/* ── FOREST ── */
+function drawForest(ctx, wx){
+  // far mist layer
+  ctx.fillStyle='rgba(10,60,30,0.4)';
+  ctx.fillRect(0, H*0.35, W, H*0.25);
+
+  // far trees
+  for(let i=0;i<12;i++){
+    const ox = pxTile(wx, 0.15, W/6) + i*(W/6);
+    const th = H*0.18 + Math.sin(i*7.3)*H*0.06;
+    ctx.fillStyle='#0d3b1a';
+    ctx.beginPath(); ctx.moveTo(ox, H*0.6); ctx.lineTo(ox+W/16, H*0.6-th);
+    ctx.lineTo(ox+W/8, H*0.6); ctx.fill();
+  }
+  // mid trees
+  for(let i=0;i<8;i++){
+    const ox = pxTile(wx, 0.35, W/4) + i*(W/4);
+    const th = H*0.28 + Math.sin(i*3.7)*H*0.08;
+    ctx.fillStyle='#1a5a28';
+    ctx.beginPath(); ctx.moveTo(ox, H*0.68); ctx.lineTo(ox+W/10, H*0.68-th);
+    ctx.lineTo(ox+W/5, H*0.68); ctx.fill();
+    // canopy
+    ctx.fillStyle='#22703a';
+    ctx.beginPath(); ctx.arc(ox+W/10, H*0.68-th, W/16, 0, Math.PI*2); ctx.fill();
+  }
+  // ground
+  const gg = ctx.createLinearGradient(0, H*0.68, 0, H);
+  gg.addColorStop(0,'#2d6b1a'); gg.addColorStop(1,'#1a3d0a');
+  ctx.fillStyle=gg; ctx.fillRect(0, H*0.68, W, H*0.32);
+  // near roots/bushes
+  for(let i=0;i<6;i++){
+    const ox = pxTile(wx, 0.7, W/3) + i*(W/3);
+    ctx.fillStyle='#1a4a10';
+    ctx.beginPath(); ctx.arc(ox, H*0.7, W/14, 0, Math.PI); ctx.fill();
+  }
+  // light rays
+  ctx.save(); ctx.globalAlpha*=0.12;
+  for(let i=0;i<5;i++){
+    const ox = pxTile(wx*0.05, 0.05, W/4) + i*(W/4) + W/8;
+    ctx.fillStyle='#a0ff60';
+    ctx.beginPath();
+    ctx.moveTo(ox, 0); ctx.lineTo(ox-60, H*0.7); ctx.lineTo(ox+60, H*0.7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── MOUNTAIN ── */
+function drawMountain(ctx, wx){
+  // far peaks
+  for(let i=0;i<6;i++){
+    const ox = pxTile(wx, 0.08, W/3) + i*(W/3);
+    const ph = H*0.35+Math.sin(i*2.1)*H*0.08;
+    ctx.fillStyle='#2a1a40';
+    ctx.beginPath(); ctx.moveTo(ox,H*0.7); ctx.lineTo(ox+W/6,H*0.7-ph); ctx.lineTo(ox+W/3,H*0.7); ctx.fill();
+    // snow
+    ctx.fillStyle='rgba(220,210,240,0.7)';
+    ctx.beginPath(); ctx.moveTo(ox+W/6,H*0.7-ph); ctx.lineTo(ox+W/6-W/22,H*0.7-ph+H*0.06); ctx.lineTo(ox+W/6+W/22,H*0.7-ph+H*0.06); ctx.fill();
+  }
+  // near rocky hill
+  for(let i=0;i<4;i++){
+    const ox = pxTile(wx, 0.35, W/2) + i*(W/2);
+    ctx.fillStyle='#4a3a2a';
+    ctx.beginPath(); ctx.moveTo(ox,H*0.75); ctx.lineTo(ox+W/4,H*0.6); ctx.lineTo(ox+W/2,H*0.75); ctx.fill();
+  }
+  // ground
+  const gg = ctx.createLinearGradient(0,H*0.75,0,H);
+  gg.addColorStop(0,'#5c4a3a'); gg.addColorStop(1,'#2a1a0a');
+  ctx.fillStyle=gg; ctx.fillRect(0,H*0.75,W,H*0.25);
+  // clouds
+  ctx.save(); ctx.globalAlpha*=0.15;
+  ctx.fillStyle='#c0a0ff';
+  for(let i=0;i<3;i++){
+    const ox = pxTile(wx,0.04,W/2)+i*(W/2);
+    ctx.beginPath(); ctx.arc(ox+W/6,H*0.18,W/8,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(ox+W/4,H*0.15,W/10,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── DESERT ── */
+function drawDesert(ctx, wx){
+  // sun glow
+  const sunX = W*0.8, sunY = H*0.22;
+  const sg = ctx.createRadialGradient(sunX,sunY,10,sunX,sunY,W*0.4);
+  sg.addColorStop(0,'rgba(255,200,0,0.25)'); sg.addColorStop(1,'transparent');
+  ctx.fillStyle=sg; ctx.fillRect(0,0,W,H*0.7);
+  // far dunes
+  for(let i=0;i<5;i++){
+    const ox = pxTile(wx,0.12,W/2)+i*(W/2);
+    ctx.fillStyle='#b86a00';
+    ctx.beginPath(); ctx.moveTo(ox,H*0.72); ctx.bezierCurveTo(ox+W/4,H*0.55,ox+W/3,H*0.55,ox+W/2,H*0.72); ctx.fill();
+  }
+  // near dunes
+  for(let i=0;i<4;i++){
+    const ox = pxTile(wx,0.4,W/2)+i*(W/2);
+    ctx.fillStyle='#c8840a';
+    ctx.beginPath(); ctx.moveTo(ox,H*0.78); ctx.bezierCurveTo(ox+W/4,H*0.6,ox+W/3,H*0.6,ox+W/2,H*0.78); ctx.fill();
+  }
+  // cacti
+  for(let i=0;i<5;i++){
+    const ox = pxTile(wx,0.55,W/4)+i*(W/4);
+    const ch = H*0.08+Math.random()*H*0.04;
+    ctx.fillStyle='#2a5a1a';
+    ctx.fillRect(ox-8,H*0.7-ch,16,ch);
+    ctx.fillRect(ox-24,H*0.7-ch*0.6,16,8);
+    ctx.fillRect(ox+8,H*0.7-ch*0.5,16,8);
+  }
+  // ground
+  const gg = ctx.createLinearGradient(0,H*0.78,0,H);
+  gg.addColorStop(0,'#c8840a'); gg.addColorStop(1,'#8b5500');
+  ctx.fillStyle=gg; ctx.fillRect(0,H*0.78,W,H*0.22);
+  // heat shimmer lines
+  ctx.save(); ctx.globalAlpha*=0.06;
+  for(let i=0;i<8;i++){
+    ctx.fillStyle='#ffaa00';
+    ctx.fillRect(0, H*0.7+i*4, W, 2);
+  }
+  ctx.restore();
+}
+
+/* ── CITY ── */
+function drawCity(ctx, wx){
+  // far skyline
+  for(let i=0;i<10;i++){
+    const ox = pxTile(wx,0.1,W/5)+i*(W/5);
+    const bh = H*0.3+Math.sin(i*4.1)*H*0.15;
+    ctx.fillStyle='#0d0d25';
+    ctx.fillRect(ox,H*0.7-bh,W/6,bh);
+    // windows
+    ctx.fillStyle='rgba(150,200,255,0.2)';
+    for(let r=0;r<Math.floor(bh/20);r++){
+      for(let c=0;c<3;c++){
+        if(Math.random()>0.4){
+          ctx.fillRect(ox+c*12+8, H*0.7-bh+r*18+6, 8, 10);
+        }
+      }
+    }
+  }
+  // near buildings
+  for(let i=0;i<6;i++){
+    const ox = pxTile(wx,0.45,W/3)+i*(W/3);
+    const bh = H*0.45+Math.sin(i*2.9)*H*0.1;
+    ctx.fillStyle='#12122a';
+    ctx.fillRect(ox,H*0.72-bh,W/4,bh);
+    // bright windows
+    ctx.fillStyle='rgba(0,180,255,0.5)';
+    for(let r=0;r<Math.floor(bh/22);r++){
+      for(let c=0;c<4;c++){
+        if(Math.random()>0.5){
+          ctx.fillRect(ox+c*14+6, H*0.72-bh+r*20+6, 8, 12);
+        }
+      }
+    }
+  }
+  // ground asphalt
+  ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,H*0.72,W,H*0.28);
+  // road markings
+  ctx.strokeStyle='rgba(255,255,0,0.3)'; ctx.lineWidth=4; ctx.setLineDash([40,30]);
+  ctx.beginPath(); ctx.moveTo(0,H*0.82); ctx.lineTo(W,H*0.82); ctx.stroke();
+  ctx.setLineDash([]);
+  // neon signs glow
+  ctx.save(); ctx.globalAlpha*=0.3;
+  for(let i=0;i<4;i++){
+    const ox = pxTile(wx,0.6,W/3)+i*(W/3)+W/8;
+    const ng = ctx.createRadialGradient(ox,H*0.6,2,ox,H*0.6,80);
+    ng.addColorStop(0,i%2===0?'rgba(0,200,255,0.8)':'rgba(255,50,200,0.8)');
+    ng.addColorStop(1,'transparent');
+    ctx.fillStyle=ng; ctx.fillRect(ox-80,H*0.5,160,160);
+  }
+  ctx.restore();
+}
+
+/* ── ROOFTOPS ── */
+function drawRooftops(ctx, wx){
+  // same dark sky already drawn
+  // distant buildings tops
+  for(let i=0;i<8;i++){
+    const ox = pxTile(wx,0.2,W/4)+i*(W/4);
+    const bh = H*0.25+Math.sin(i*3.3)*H*0.1;
+    ctx.fillStyle='#15152e';
+    ctx.fillRect(ox,H*0.55,W/5,bh);
+    // water tower
+    if(i%3===0){
+      ctx.fillStyle='#1a2a3a';
+      ctx.beginPath(); ctx.arc(ox+W/10, H*0.55-10, 15, 0, Math.PI*2); ctx.fill();
+      ctx.fillRect(ox+W/10-3, H*0.55-10, 6, 15);
+    }
+  }
+  // rooftop surface (where turtles run)
+  ctx.fillStyle='#2a2a3e'; ctx.fillRect(0,H*0.67,W,H*0.33);
+  // rooftop edges
+  for(let i=0;i<6;i++){
+    const ox = pxTile(wx,0.6,W/3)+i*(W/3);
+    ctx.fillStyle='#3a3a50';
+    ctx.fillRect(ox,H*0.67,W/3+2,8);
+  }
+  // chimneys
+  for(let i=0;i<5;i++){
+    const ox = pxTile(wx,0.7,W/4)+i*(W/4)+W/12;
+    ctx.fillStyle='#303048';
+    ctx.fillRect(ox,H*0.55,20,H*0.12);
+    // smoke
+    ctx.save(); ctx.globalAlpha*=0.25;
+    for(let s=0;s<3;s++){
+      ctx.fillStyle='#888';
+      ctx.beginPath(); ctx.arc(ox+10, H*0.55-s*20-10+Math.sin(t+s)*8, 8+s*3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  // antenna
+  for(let i=0;i<4;i++){
+    const ox = pxTile(wx,0.5,W/3)+i*(W/3)+W/5;
+    ctx.strokeStyle='#445'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(ox,H*0.67); ctx.lineTo(ox,H*0.48); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox-20,H*0.52); ctx.lineTo(ox+20,H*0.52); ctx.stroke();
+  }
+  // stars
+  ctx.save(); ctx.globalAlpha*=0.6;
+  ctx.fillStyle='#fff';
+  for(let i=0;i<40;i++){
+    const sx = (i*137+wx*0.01)%W;
+    const sy = (i*73)%(H*0.5);
+    const sr = Math.sin(t*2+i)*0.5+1;
+    ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── SEWERS ── */
+function drawSewers(ctx, wx){
+  // brick walls
+  ctx.fillStyle='#0d1a0d'; ctx.fillRect(0,0,W,H);
+  // bricks pattern
+  ctx.strokeStyle='rgba(30,60,30,0.5)'; ctx.lineWidth=1;
+  for(let r=0;r<Math.ceil(H/30);r++){
+    const offset = r%2===0?0:20;
+    for(let c=-1;c<Math.ceil(W/40)+1;c++){
+      ctx.strokeRect(c*40+offset-(wx*0.3)%40, r*30, 40, 30);
+    }
+  }
+  // tunnel arch
+  const arch = ctx.createRadialGradient(W*0.5,H*0.5,H*0.1,W*0.5,H*0.5,H*0.6);
+  arch.addColorStop(0,'rgba(0,30,0,0)'); arch.addColorStop(0.7,'rgba(0,10,0,0)');
+  arch.addColorStop(1,'rgba(0,0,0,0.9)');
+  ctx.fillStyle=arch; ctx.fillRect(0,0,W,H);
+  // ground
+  ctx.fillStyle='#0a1a0a'; ctx.fillRect(0,H*0.7,W,H*0.3);
+  // water channel
+  const wg = ctx.createLinearGradient(0,H*0.78,0,H);
+  wg.addColorStop(0,'#0a3a0a'); wg.addColorStop(1,'#051205');
+  ctx.fillStyle=wg; ctx.fillRect(W*0.3,H*0.78,W*0.4,H*0.22);
+  // water shimmer
+  ctx.save(); ctx.globalAlpha*=0.4;
+  ctx.strokeStyle='#1aff1a'; ctx.lineWidth=1;
+  for(let i=0;i<6;i++){
+    const ox = pxTile(wx,0.5,W/3)+i*(W/6);
+    ctx.beginPath(); ctx.moveTo(ox,H*0.82); ctx.lineTo(ox+30,H*0.82+2); ctx.stroke();
+  }
+  ctx.restore();
+  // pipes
+  for(let i=0;i<4;i++){
+    const oy = H*0.2+i*H*0.12;
+    ctx.fillStyle='#1a3a1a';
+    ctx.fillRect(0,oy,W,12);
+    ctx.strokeStyle='rgba(50,150,50,0.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,oy+6); ctx.lineTo(W,oy+6); ctx.stroke();
+  }
+  // slime drips
+  ctx.save(); ctx.globalAlpha*=0.5;
+  for(let i=0;i<8;i++){
+    const ox = (i*150-(wx*0.2)%150)%W;
+    const drip = Math.sin(t*1.5+i)*10+15;
+    ctx.fillStyle='#1aff1a';
+    ctx.beginPath(); ctx.arc(ox, H*0.2+drip, 4+Math.sin(t+i)*2, 0, Math.PI*2); ctx.fill();
+    ctx.fillRect(ox-2, H*0.2, 4, drip);
+  }
+  ctx.restore();
+  // green tinted light
+  ctx.save(); ctx.globalAlpha*=0.08;
+  ctx.fillStyle='#00ff00';
+  ctx.fillRect(0,0,W,H);
+  ctx.restore();
+}
+
+/* ── RIVER ── */
+function drawRiver(ctx, wx){
+  // misty trees far
+  for(let i=0;i<10;i++){
+    const ox = pxTile(wx,0.1,W/5)+i*(W/5);
+    ctx.fillStyle='rgba(30,80,50,0.4)';
+    ctx.beginPath(); ctx.arc(ox+W/10,H*0.55,W/12,0,Math.PI*2); ctx.fill();
+  }
+  // river banks
+  ctx.fillStyle='#1a4a2a'; ctx.fillRect(0,H*0.65,W,H*0.35);
+  // water
+  const wg = ctx.createLinearGradient(0,H*0.68,0,H*0.85);
+  wg.addColorStop(0,'#0a3060'); wg.addColorStop(1,'#051828');
+  ctx.fillStyle=wg; ctx.fillRect(0,H*0.68,W,H*0.17);
+  // water ripples
+  ctx.save();
+  ctx.strokeStyle='rgba(0,200,220,0.3)'; ctx.lineWidth=1;
+  for(let i=0;i<12;i++){
+    const ox = pxTile(wx,0.6,W/6)+i*(W/6)+Math.sin(t+i)*20;
+    ctx.beginPath(); ctx.ellipse(ox, H*0.74+Math.sin(i)*10, 30, 5, 0, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.restore();
+  // reflections
+  ctx.save(); ctx.globalAlpha*=0.15;
+  ctx.fillStyle='#00eeff';
+  ctx.fillRect(0,H*0.68,W,H*0.17);
+  ctx.restore();
+  // mist
+  const mg = ctx.createLinearGradient(0,H*0.5,0,H*0.7);
+  mg.addColorStop(0,'transparent'); mg.addColorStop(1,'rgba(100,160,180,0.15)');
+  ctx.fillStyle=mg; ctx.fillRect(0,H*0.5,W,H*0.2);
+  // near bank
+  ctx.fillStyle='#0d3a1a'; ctx.fillRect(0,H*0.85,W,H*0.15);
+  // lily pads
+  ctx.fillStyle='rgba(20,100,30,0.6)';
+  for(let i=0;i<6;i++){
+    const ox = pxTile(wx,0.7,W/4)+i*(W/4);
+    ctx.beginPath(); ctx.arc(ox,H*0.79,12,0,Math.PI*2); ctx.fill();
+  }
+}
+
+/* ── BRIDGE ── */
+function drawBridge(ctx, wx){
+  // dramatic sunset sky already set
+  // sun glow
+  const sunX=W*0.65, sunY=H*0.3;
+  const sg = ctx.createRadialGradient(sunX,sunY,5,sunX,sunY,W*0.5);
+  sg.addColorStop(0,'rgba(255,120,0,0.6)'); sg.addColorStop(1,'transparent');
+  ctx.fillStyle=sg; ctx.fillRect(0,0,W,H);
+  // river below
+  const rg = ctx.createLinearGradient(0,H*0.75,0,H);
+  rg.addColorStop(0,'#3a1500'); rg.addColorStop(1,'#1a0800');
+  ctx.fillStyle=rg; ctx.fillRect(0,H*0.75,W,H*0.25);
+  // bridge deck
+  ctx.fillStyle='#3a2a1a'; ctx.fillRect(0,H*0.67,W,H*0.06);
+  ctx.fillStyle='#2a1a0a'; ctx.fillRect(0,H*0.73,W,4);
+  // towers
+  for(let side of [0.15,0.85]){
+    ctx.fillStyle='#2a1a0a';
+    ctx.fillRect(W*side-15,H*0.2,30,H*0.53);
+    ctx.fillRect(W*side-30,H*0.2,60,20);
+    ctx.fillRect(W*side-25,H*0.26,50,15);
+    // lights
+    ctx.fillStyle='rgba(255,180,50,0.8)';
+    ctx.beginPath(); ctx.arc(W*side,H*0.22,4,0,Math.PI*2); ctx.fill();
+  }
+  // cables
+  ctx.strokeStyle='rgba(50,30,10,0.8)'; ctx.lineWidth=3;
+  for(let i=0;i<20;i++){
+    const px2 = W*0.15 + (W*0.7/(19))*i;
+    const catY = H*0.67 - (Math.sin(i/19*Math.PI))*H*0.42;
+    ctx.beginPath(); ctx.moveTo(px2, H*0.22); ctx.lineTo(px2, H*0.73); ctx.stroke();
+  }
+  // main cables
+  ctx.strokeStyle='rgba(40,20,5,0.9)'; ctx.lineWidth=5;
+  ctx.beginPath();
+  ctx.moveTo(W*0.15,H*0.22);
+  ctx.quadraticCurveTo(W*0.5,H*0.35,W*0.85,H*0.22);
+  ctx.stroke();
+}
+
+/* =============================================================
+   GROUND LINE
+============================================================= */
+function groundY(biomeIdx){
+  // where the ground is for each biome
+  const gy=[0.68, 0.75, 0.78, 0.72, 0.67, 0.70, 0.68, 0.67];
+  return H * (gy[biomeIdx] || 0.7);
+}
+
+/* =============================================================
+   PARTICLES DRAW / UPDATE
+============================================================= */
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx*dt*60; p.y+=p.vy*dt*60; p.vy+=0.05;
+    p.life-=dt/p.maxLife*0.8;
+    if(p.life<=0){ particles.splice(i,1); continue; }
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);
+    ctx.fillStyle=p.color+(p.life*0.5)+')';
+    ctx.fill();
+  }
+  for(let i=splashes.length-1;i>=0;i--){
+    const p=splashes[i];
+    p.x+=p.vx*dt*60; p.y+=p.vy*dt*60; p.vy+=0.08;
+    p.life-=dt/p.maxLife;
+    if(p.life<=0){ splashes.splice(i,1); continue; }
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,180,220,${p.life*0.7})`;
+    ctx.fill();
+  }
+  for(let i=leaves.length-1;i>=0;i--){
+    const l=leaves[i];
+    l.x+=l.vx*dt*60; l.y+=l.vy*dt*60; l.rot+=l.rotV;
+    l.vy+=0.01; l.vx*=0.99;
+    l.life-=dt/l.maxLife*0.4;
+    if(l.life<=0){ leaves.splice(i,1); continue; }
+    ctx.save(); ctx.translate(l.x,l.y); ctx.rotate(l.rot);
+    ctx.globalAlpha=l.life*0.8;
+    ctx.fillStyle=l.color;
+    ctx.beginPath(); ctx.ellipse(0,0,l.size,l.size/2,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* =============================================================
+   SPEED LINES (boost effect)
+============================================================= */
+function drawSpeedLines(ctx, alpha){
+  ctx.save(); ctx.globalAlpha=alpha;
+  ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1;
+  for(let i=0;i<20;i++){
+    const y = (i/20)*H;
+    const len = 80+Math.random()*120;
+    ctx.beginPath(); ctx.moveTo(W*0.6+Math.random()*W*0.3,y);
+    ctx.lineTo(W*0.6+Math.random()*W*0.3+len,y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* =============================================================
+   MOTION BLUR (simulate with overlay)
+============================================================= */
+let prevFrame = null;
+function applyMotionBlur(ctx, intensity){
+  if(intensity < 0.01) return;
+  ctx.save(); ctx.globalAlpha = intensity * 0.25;
+  // Just add a slight horizontal smear via fillRect
+  const imgd = ctx.getImageData(0,0,W,H);
+  ctx.putImageData(imgd, 3, 0);
+  ctx.restore();
+}
+
+/* =============================================================
+   CAMERA SHAKE
+============================================================= */
+function applyCameraShake(ctx){
+  if(camShake > 0.01){
+    const sx = (Math.random()-0.5)*camShake*8;
+    const sy = (Math.random()-0.5)*camShake*4;
+    ctx.translate(sx,sy);
+  }
+}
+
+/* =============================================================
+   BOOST
+============================================================= */
+function boost(){
+  if(boosted) return;
+  boosted=true; speed=3; camShake=1;
+  boostTimer=0;
+  document.getElementById('launch-btn').textContent='MISSION EN COURS...';
+  document.getElementById('launch-btn').style.opacity='0.5';
+  document.getElementById('launch-btn').style.pointerEvents='none';
+}
+
+/* =============================================================
+   MAIN LOOP
+============================================================= */
+let last = 0;
+let worldX = 0;
+
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+
+  t += dt * speed;
+  worldX += dt * speed * 120;
+
+  // Biome progression
+  biomeProgress += dt * speed / BIOME_LEN;
+  if(biomeProgress >= 1){
+    biomeProgress -= 1;
+    biomeIdx = (biomeIdx+1) % BIOMES.length;
+    biomeLabel.textContent = BIOME_NAMES[biomeIdx];
+    biomeLabel.style.opacity='0';
+    setTimeout(()=>{ biomeLabel.style.opacity='1'; }, 500);
+  }
+
+  // Boost decay
+  if(boosted){
+    boostTimer += dt;
+    if(boostTimer > 4){
+      speed = 1; boosted = false; camShake = 0;
+      document.getElementById('launch-btn').textContent='LANCER LA MISSION';
+      document.getElementById('launch-btn').style.opacity='1';
+      document.getElementById('launch-btn').style.pointerEvents='all';
+    } else {
+      camShake = Math.max(0, 1 - boostTimer/4);
+    }
+  }
+
+  // Update bird
+  updateBird(dt);
+
+  // Spawn particles
+  if(Math.random() < 0.6 * speed){
+    const gY = groundY(biomeIdx);
+    // dust from each turtle
+    const turtleXs = [W*0.28, W*0.38, W*0.48, W*0.56];
+    for(const tx of turtleXs){
+      if(Math.random()<0.3) spawnDust(tx+10, gY);
+    }
+  }
+  // Leaves in forest
+  if(biomeIdx===0 && Math.random()<0.3){
+    spawnLeaf(W*0.8+Math.random()*W*0.2, H*0.3+Math.random()*H*0.2);
+  }
+  // Splashes in river
+  if(biomeIdx===6 && Math.random()<0.25*speed){
+    const gY = groundY(6);
+    const turtleXs = [W*0.28,W*0.38,W*0.48,W*0.56];
+    spawnSplash(turtleXs[Math.floor(Math.random()*4)]+5, gY+5);
+  }
+
+  /* ── DRAW ── */
+  ctx.save();
+  applyCameraShake(ctx);
+
+  // Background
+  const blend = Math.min(biomeProgress * 4, 1); // blend in last quarter
+  const nextIdx = (biomeIdx+1) % BIOMES.length;
+  const blendFactor = biomeProgress > 0.75 ? (biomeProgress-0.75)*4 : 0;
+  drawBackground(ctx, BIOMES[biomeIdx], BIOMES[nextIdx], blendFactor, worldX);
+
+  // Ground vignette
+  const gY = groundY(biomeIdx) * (1-blendFactor) + groundY(nextIdx) * blendFactor;
+
+  // Particles (behind turtles)
+  updateParticles(dt);
+
+  // Bird (ahead)
+  drawBird(ctx);
+
+  // Turtles
+  const personalities = [
+    { weapon:'swords', lean:-5, bouncy:1, scale:1.05 },         // Leo
+    { weapon:'sais', lean:8, bouncy:0.9, aggressive:true, scale:1.1 },  // Raph
+    { weapon:'nunchucks', bouncy:1.8, happy:true, scale:0.95 },          // Mikey
+    { weapon:'staff', bouncy:0.8, stratege:true, scale:1.02 },           // Don
+  ];
+  const maskColors = ['#4488ff','#ff4422','#ff9900','#cc44ff'];
+  const turtleXPos = [W*0.28, W*0.38, W*0.48, W*0.56];
+  const turtlePhaseOff = [0, 0.8, 1.6, 2.4];
+
+  for(let i=3;i>=0;i--){
+    drawTurtle(ctx,
+      turtleXPos[i], gY,
+      t + turtlePhaseOff[i],
+      maskColors[i],
+      personalities[i]
+    );
+  }
+
+  // Speed lines on boost
+  if(boosted && boostTimer<4){
+    drawSpeedLines(ctx, (1-boostTimer/4)*0.7);
+  }
+
+  // Vignette
+  const vig = ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.8);
+  vig.addColorStop(0,'transparent');
+  vig.addColorStop(1,'rgba(0,0,0,0.6)');
+  ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+
+  ctx.restore();
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

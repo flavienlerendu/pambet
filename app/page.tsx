@@ -13,6 +13,7 @@ import PlansAbandoned from "./components/PlansAbandoned";
 import Wrapped from "./components/Wrapped";
 import Gallery from "./components/Gallery";
 import AudioWall from "./components/AudioWall";
+import Resultat from "./components/Resultat";
 import Final from "./components/Final";
 
 export default function Home() {
@@ -45,6 +46,8 @@ export default function Home() {
           <div id="gallery"><Gallery /></div>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
           <div id="audios"><AudioWall /></div>
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
+          <div id="resultat"><Resultat /></div>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-900/30 to-transparent" />
           <div id="final"><Final /></div>
           <div className="text-center py-8 font-mono text-xs text-slate-800">
