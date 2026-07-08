@@ -54,7 +54,7 @@ export default function Agents() {
                     src={`${BASE}/media/${encodeURIComponent(agent.photo)}`}
                     alt={agent.name}
                     fill
-                    className="object-cover object-top"
+                    className="object-contain"
                   />
                   {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-[#0d0d14]/20 to-transparent" />
