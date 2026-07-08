@@ -94,7 +94,7 @@ export default function Agents() {
                   )}
 
                   <p className="text-xs text-slate-700 font-mono mt-3 text-right">
-                    {flipped === i ? "↑ cliquer pour fermer" : "↓ cliquer pour révéler l&apos;info secrète"}
+                    {flipped === i ? "↑ cliquer pour fermer" : "↓ cliquer pour révéler l'info secrète"}
                   </p>
                 </div>
               </div>
