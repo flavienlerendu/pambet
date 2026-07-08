@@ -2,6 +2,7 @@ export const agents = [
   {
     name: "Abel-Antoine",
     emoji: "🎭",
+    photo: "abel.jpg",
     messages: 465,
     role: "Le Maestro",
     color: "#f59e0b",
@@ -12,6 +13,7 @@ export const agents = [
   {
     name: "Flavien",
     emoji: "🏠",
+    photo: "flav.jpg",
     messages: 463,
     role: "Le Logisticien",
     color: "#3b82f6",
@@ -22,6 +24,7 @@ export const agents = [
   {
     name: "Charles",
     emoji: "👨‍💻",
+    photo: "charles .jpg",
     messages: 349,
     role: "L'Ingénieur",
     color: "#8b5cf6",
@@ -32,6 +35,7 @@ export const agents = [
   {
     name: "Thomas",
     emoji: "🎬",
+    photo: "thom.jpg",
     messages: 266,
     role: "Le Machiavélique",
     color: "#10b981",
