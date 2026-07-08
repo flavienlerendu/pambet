@@ -151,7 +151,7 @@ export const keyMoments = [
     title: "Quatre Tortues Ninja l'attendent",
     classification: "TOP SECRET — JOUR J",
     icon: "🐢",
-    content: "4 costumes de Tortues Ninja loués. 800€ de caution. Un studio de danse « Marilyn Monroe » réservé. Un caméraman. Une directrice de casting. Et Max qui ne se doute de rien.",
+    content: "4 costumes de Tortues Ninja loués. 800€ de caution. Un studio de danse « Marilyn Monroe » réservé. Un caméraman. Julie, une super comédienne. Et Max qui ne se doute de rien.",
     detail: "Flavien : « faut qu'on se partage notre loc en temps réel sur whatsapp ! celui qui suit max est le point de référence ! »",
   },
 ];
@@ -221,13 +221,6 @@ export const hallOfFame = [
     date: "21/04 11h49",
   },
   {
-    author: "Charles",
-    text: "On efface la partie tanker",
-    context: "Après l'explosion de joie sur la réponse de Max",
-    emoji: "😂",
-    date: "02/06 14h00",
-  },
-  {
     author: "Flavien",
     text: "allez il est temps que ça se passe, je craque",
     context: "La veille du jour J, alors que tout est prêt",
@@ -245,11 +238,11 @@ export const hallOfFame = [
 
 export const plansAbandoned = [
   { plan: "Marrakech", reason: "Logistique trop compliquée pour un EVG surprise" },
-  { plan: "Costume Blandin à 650€", reason: "Budget raisonnable choisi." },
-  { plan: "Barathon à surprises (copains dans chaque bar)", reason: "Remplacé par La Bellevilloise pour simplifier" },
-  { plan: "Stage de rhétorique payant (le vrai prétexte)", reason: "Évolué vers le faux casting pub de lunettes" },
+  { plan: "Costume Blandin à 650€", reason: "On a préféré mettre le budget là où ça compte : dans les souvenirs partagés." },
+  { plan: "Barathon à surprises (copains dans chaque bar)", reason: "Remplacé par La Bellevilloise — bien moins casse-gueule en termes de logistique" },
+  { plan: "Débarquer au milieu du casting", reason: "On a préféré une caméra cachée pour immortaliser les images" },
   { plan: "Tortues Ninja dans le métro après le casting", reason: "Vision 360 limitée. Risque de chute." },
-  { plan: "Directrice de casting professionnelle", reason: "Elle a finalement été indisponible — plan B improvisé" },
+  { plan: "Directrice de casting professionnelle", reason: "Remplacée par Julie — une super comédienne" },
 ];
 
 export const allPhotos = [

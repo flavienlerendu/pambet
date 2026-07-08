@@ -63,7 +63,7 @@ export default function Gallery() {
                 />
               ) : (
                 <Image
-                  src={`/media/${encodeURIComponent(photo)}`}
+                  src={`${BASE}/media/${encodeURIComponent(photo)}`}
                   alt={`Photo ${i + 1}`}
                   width={300}
                   height={200}
@@ -129,7 +129,7 @@ export default function Gallery() {
                 />
               ) : (
                 <Image
-                  src={`/media/${selected}`}
+                  src={`${BASE}/media/${encodeURIComponent(selected)}`}
                   alt="Photo agrandie"
                   width={900}
                   height={700}
