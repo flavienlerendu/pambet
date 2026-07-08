@@ -61,7 +61,7 @@ export default function Agents() {
                   {/* Role badge over photo */}
                   <div className="absolute top-4 right-4">
                     <span
-                      className="text-xs font-mono px-2 py-0.5 rounded border bg-[#0d0d14]/80 backdrop-blur-sm"
+                      className="text-sm font-mono font-bold px-3 py-1 rounded border bg-[#0d0d14]/80 backdrop-blur-sm"
                       style={{ color: agent.color, borderColor: agent.color }}
                     >
                       {agent.role}
