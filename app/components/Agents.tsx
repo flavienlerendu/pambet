@@ -58,10 +58,10 @@ export default function Agents() {
   const [photoFlipped, setPhotoFlipped] = useState<boolean[]>([false, false, false, false]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPhotoFlipped([true, true, true, true]);
-    }, 4000);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setPhotoFlipped((prev) => prev.map((v) => !v));
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const togglePhoto = (i: number, e: React.MouseEvent) => {
