@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Image from "next/image";
 import { randomInsult } from "../data/insults";
+import InsultPopup from "./InsultPopup";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -32,7 +33,6 @@ const captions = [
 
 function MarionGate({ onSuccess }: { onSuccess: () => void }) {
   const [value, setValue] = useState("");
-  const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const [insult, setInsult] = useState("");
 
@@ -41,7 +41,6 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
       onSuccess();
     } else {
       setInsult(randomInsult());
-      setError(true);
       setShake(true);
       setTimeout(() => setShake(false), 500);
       setValue("");
@@ -49,6 +48,8 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
+    <>
+    <InsultPopup insult={insult} onClose={() => setInsult("")} />
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -69,26 +70,11 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
           <input
             type="password"
             value={value}
-            onChange={(e) => { setValue(e.target.value); setError(false); }}
+            onChange={(e) => { setValue(e.target.value); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
             placeholder="0 indice - Mouahahah"
-            className={`w-full bg-[#0d0d14] border rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 ${
-              error ? "border-pink-500 placeholder-pink-500/50" : "border-[#1e1e2e] focus:border-pink-500/50 placeholder-slate-600"
-            }`}
+            className="w-full bg-[#0d0d14] border border-[#1e1e2e] rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 focus:border-pink-500/50 placeholder-slate-600"
           />
-
-          <AnimatePresence>
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-pink-500 text-xs font-mono mb-3"
-              >
-                {insult}
-              </motion.p>
-            )}
-          </AnimatePresence>
 
           <button
             onClick={submit}
@@ -99,6 +85,7 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
         </motion.div>
       </div>
     </motion.div>
+    </>
   );
 }
 
