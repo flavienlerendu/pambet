@@ -1,6 +1,9 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import Image from "next/image";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 function ScandaleGate({ onSuccess }: { onSuccess: () => void }) {
   const [value, setValue] = useState("");
@@ -220,10 +223,18 @@ export default function Scandale({ onUnlock }: { onUnlock?: () => void }) {
               transition={{ delay: 0.9, duration: 0.6 }}
               className="text-center py-12"
             >
-              <div className="text-8xl mb-6">🐑</div>
-              <p className="text-white font-black text-2xl md:text-3xl mb-2">
+              <p className="text-white font-black text-2xl md:text-3xl mb-8">
                 Mais revenons à nos moutons.
               </p>
+              <div className="mx-auto max-w-sm rounded-2xl overflow-hidden mb-6">
+                <Image
+                  src={`${BASE}/media/${encodeURIComponent("ChatGPT Image 21 juil. 2026, 22_11_12.png")}`}
+                  alt="Le marié déguisé en mouton"
+                  width={600}
+                  height={600}
+                  className="w-full h-auto object-contain"
+                />
+              </div>
               <p className="text-slate-500 font-mono text-sm">
                 Il y a quelqu'un de bien plus important que les argentins.
               </p>
