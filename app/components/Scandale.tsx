@@ -44,7 +44,7 @@ function ScandaleGate({ onSuccess }: { onSuccess: () => void }) {
             value={value}
             onChange={(e) => { setValue(e.target.value); setError(false); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Code ultra-secret"
+            placeholder="la goat"
             className={`w-full bg-[#0d0d14] border rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 ${
               error ? "border-orange-500 placeholder-orange-500/50" : "border-[#1e1e2e] focus:border-slate-600 placeholder-slate-600"
             }`}
