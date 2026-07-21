@@ -8,7 +8,7 @@ function ScandaleGate({ onSuccess }: { onSuccess: () => void }) {
   const [shake, setShake] = useState(false);
 
   const submit = () => {
-    if (value.toLowerCase().trim() === "pestorosso") {
+    if (value.toLowerCase().trim() === "chantal") {
       onSuccess();
     } else {
       setError(true);
