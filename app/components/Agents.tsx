@@ -60,7 +60,7 @@ export default function Agents() {
   useEffect(() => {
     const interval = setInterval(() => {
       setPhotoFlipped((prev) => prev.map((v) => !v));
-    }, 1000);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
