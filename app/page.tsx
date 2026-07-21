@@ -15,6 +15,7 @@ import Gallery from "./components/Gallery";
 import AudioWall from "./components/AudioWall";
 import Resultat from "./components/Resultat";
 import Scandale from "./components/Scandale";
+import Marion from "./components/Marion";
 import Final from "./components/Final";
 
 export default function Home() {
@@ -51,6 +52,8 @@ export default function Home() {
           <div id="resultat"><Resultat /></div>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-900/30 to-transparent" />
           <div id="scandale"><Scandale /></div>
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-900/30 to-transparent" />
+          <div id="marion"><Marion /></div>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-900/30 to-transparent" />
           <div id="final"><Final /></div>
           <div className="text-center py-8 font-mono text-xs text-slate-800">
