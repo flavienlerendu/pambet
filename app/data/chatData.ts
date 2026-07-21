@@ -101,7 +101,7 @@ export const keyMoments = [
     title: "La maison à Meudon est validée",
     classification: "CONFIDENTIEL",
     icon: "🏠",
-    content: "32 avenue du Château, Meudon. Les proprios ont dit oui. 300€ de frais de ménage. « Ils nettoient à la langue ou quoi ? » — Abel-Antoine.",
+    content: "32 avenue du Château, Meudon. Les proprios ont dit oui. La base opérationnelle est sécurisée. Piscine, terrasse, barbecue — exactement ce qu'il fallait.",
     detail: "La maison sera leur QG. Arrivée le vendredi 5 juin, départ le lundi. Avec option prolongation.",
   },
   {
