@@ -114,8 +114,12 @@ export default function Scandale() {
           <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
             Le <span className="text-orange-500">Scandale</span>
           </h2>
-          <p className="text-slate-500 font-mono text-sm max-w-md mx-auto">
-            Ce que les médias mainstream n'osent pas dire.
+          <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed mt-2">
+            Attendez 2 minutes. Le mariage de Max, c'est bien. C'est même magnifique.
+            Mais il y a bien plus important pour l'humanité en ce moment.
+            <span className="text-orange-400 font-bold"> Notre haine des footballeurs argentins.</span>
+            <br />
+            Passons quelques instants sur ce scandale.
           </p>
         </motion.div>
 
