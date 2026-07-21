@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { randomInsult } from "../data/insults";
 
 export default function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
+  const [insult, setInsult] = useState("");
 
   const submit = () => {
     if (value.toLowerCase().trim() === "thermomix") {
       onSuccess();
     } else {
+      setInsult(randomInsult());
       setError(true);
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -42,7 +45,7 @@ export default function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
             value={value}
             onChange={(e) => { setValue(e.target.value); setError(false); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Mot de passe"
+            placeholder="0 indice - Mouahahah"
             autoFocus
             className={`w-full bg-[#0d0d14] border rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 ${
               error ? "border-red-500 placeholder-red-500/50" : "border-[#1e1e2e] focus:border-slate-600 placeholder-slate-600"
@@ -57,7 +60,7 @@ export default function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
                 exit={{ opacity: 0 }}
                 className="text-red-500 text-xs font-mono mb-3"
               >
-                Accès refusé. Code incorrect.
+                {insult}
               </motion.p>
             )}
           </AnimatePresence>

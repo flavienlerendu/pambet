@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Image from "next/image";
+import { randomInsult } from "../data/insults";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -33,11 +34,13 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
+  const [insult, setInsult] = useState("");
 
   const submit = () => {
     if (value.toLowerCase().trim() === "marion") {
       onSuccess();
     } else {
+      setInsult(randomInsult());
       setError(true);
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -68,7 +71,7 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
             value={value}
             onChange={(e) => { setValue(e.target.value); setError(false); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Le prénom qui compte"
+            placeholder="0 indice - Mouahahah"
             className={`w-full bg-[#0d0d14] border rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 ${
               error ? "border-pink-500 placeholder-pink-500/50" : "border-[#1e1e2e] focus:border-pink-500/50 placeholder-slate-600"
             }`}
@@ -82,7 +85,7 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
                 exit={{ opacity: 0 }}
                 className="text-pink-500 text-xs font-mono mb-3"
               >
-                Ce n'est pas la bonne réponse. Réfléchis.
+                {insult}
               </motion.p>
             )}
           </AnimatePresence>

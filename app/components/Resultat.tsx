@@ -1,6 +1,7 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { randomInsult } from "../data/insults";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -29,11 +30,13 @@ function VideoGate({ onSuccess }: { onSuccess: () => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
+  const [insult, setInsult] = useState("");
 
   const submit = () => {
     if (value.toLowerCase().trim() === "motorboat") {
       onSuccess();
     } else {
+      setInsult(randomInsult());
       setError(true);
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -63,7 +66,7 @@ function VideoGate({ onSuccess }: { onSuccess: () => void }) {
             value={value}
             onChange={(e) => { setValue(e.target.value); setError(false); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="VROOOOOM"
+            placeholder="0 indice - Mouahahah"
             className={`w-full bg-[#0d0d14] border rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 ${
               error ? "border-red-500 placeholder-red-500/50" : "border-[#1e1e2e] focus:border-slate-600 placeholder-slate-600"
             }`}
@@ -77,7 +80,7 @@ function VideoGate({ onSuccess }: { onSuccess: () => void }) {
                 exit={{ opacity: 0 }}
                 className="text-red-500 text-xs font-mono mb-3"
               >
-                Habilitation refusée. Code incorrect.
+                {insult}
               </motion.p>
             )}
           </AnimatePresence>
