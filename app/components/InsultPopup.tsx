@@ -1,18 +1,29 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function InsultPopup({ insult, onClose }: { insult: string; onClose: () => void }) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!insult) return;
-    const t = setTimeout(onClose, 2500);
-    const onKey = (e: KeyboardEvent) => { e.preventDefault(); onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey); };
-  }, [insult, onClose]);
+    const t = setTimeout(() => onCloseRef.current(), 2500);
+    let handler: ((e: KeyboardEvent) => void) | null = null;
+    // Délai pour ne pas capter le même Entrée qui a ouvert la popup
+    const attach = setTimeout(() => {
+      handler = (e: KeyboardEvent) => { e.preventDefault(); onCloseRef.current(); };
+      window.addEventListener("keydown", handler);
+    }, 100);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(attach);
+      if (handler) window.removeEventListener("keydown", handler);
+    };
+  }, [insult]);
 
   return (
     <AnimatePresence>
