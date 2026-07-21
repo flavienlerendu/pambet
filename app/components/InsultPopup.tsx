@@ -9,7 +9,9 @@ export default function InsultPopup({ insult, onClose }: { insult: string; onClo
   useEffect(() => {
     if (!insult) return;
     const t = setTimeout(onClose, 2500);
-    return () => clearTimeout(t);
+    const onKey = (e: KeyboardEvent) => { e.preventDefault(); onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey); };
   }, [insult, onClose]);
 
   return (
