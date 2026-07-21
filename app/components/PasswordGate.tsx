@@ -8,7 +8,7 @@ export default function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   const [shake, setShake] = useState(false);
 
   const submit = () => {
-    if (value.toLowerCase().trim() === "motorboat") {
+    if (value.toLowerCase().trim() === "thermomix") {
       onSuccess();
     } else {
       setError(true);
