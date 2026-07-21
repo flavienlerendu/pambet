@@ -414,13 +414,39 @@ export const castingScript = `Je suis acteur.
 C'est comme ça qu'on dit.
 Tous les matins je me lève pour devenir quelqu'un d'autre.
 Pour incarner des vies qui sont pas la mienne.
-Mais le soir, quand je ferme les yeux...
-Il y a une vie qui m'appartient vraiment.
-Une vie que j'ai choisie.
-Une vie que j'aime.
 
-[Ce texte contient une déclaration d'amour cachée pour Marion.]
-[Max ne le sait pas encore.]`;
+Mais le soir, quand je ferme les yeux,
+je suis seul, face à moi-même.
+Jouer des rôles, ça remplit pas le silence.
+
+Et puis t'es arrivée.
+Comme une évidence.
+On me dit souvent que j'ai la vision, mais là j'avoue :
+je t'ai pas vue venir.
+
+Avant toi, tout était un peu flou.
+Je regardais sans vraiment voir.
+Je connaissais les bons angles, les bonnes lumières.
+Mais je passais à côté de l'essentiel.
+Mon cœur était hors-champ.
+Comme coupé au montage.
+
+Depuis que t'es là, c'est plein soleil.
+Au crépuscule comme en plein jour.
+T'es ma nuit américaine.
+Fini le noir et blanc — j'ai retrouvé la couleur.
+
+Tu connais tous mes regards.
+Les fatigués. Les heureux.
+Ceux des jours de première.
+Des lendemains difficiles.
+
+Avec toi, pour la première fois,
+j'ai plus besoin de jouer.
+
+Nous deux, c'est plan séquence.
+Version longue.
+Sans clap de fin.`;
 
 export const finalMessage = `Maxime,
 
