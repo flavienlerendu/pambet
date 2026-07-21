@@ -69,7 +69,6 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
             onChange={(e) => { setValue(e.target.value); setError(false); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
             placeholder="Le prénom qui compte"
-            autoFocus
             className={`w-full bg-[#0d0d14] border rounded-lg px-4 py-3 text-white font-mono text-center text-sm outline-none transition-colors mb-3 ${
               error ? "border-pink-500 placeholder-pink-500/50" : "border-[#1e1e2e] focus:border-pink-500/50 placeholder-slate-600"
             }`}
@@ -144,7 +143,7 @@ export default function Marion() {
             >
               <div className="text-6xl mb-4">💍</div>
               <h3 className="text-3xl font-black text-white mb-3">
-                Maxime &amp; Marion
+                Marion &amp; Maxime
               </h3>
               <p className="text-pink-300 text-lg font-light italic max-w-xl mx-auto leading-relaxed">
                 « La vraie victoire de cette opération, ce n'est pas d'avoir piégé Max.
