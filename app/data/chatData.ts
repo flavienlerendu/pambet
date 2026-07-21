@@ -101,7 +101,7 @@ export const keyMoments = [
     title: "La maison à Meudon est validée",
     classification: "CONFIDENTIEL",
     icon: "🏠",
-    content: "32 avenue du Château, Meudon. Les proprios ont dit oui. La base opérationnelle est sécurisée. Piscine, terrasse, barbecue — exactement ce qu'il fallait.",
+    content: "32 avenue du Château, Meudon. Les proprios ont dit oui. La base opérationnelle est sécurisée. Piano, terrasse, barbecue — exactement ce qu'il fallait.",
     detail: "La maison sera leur QG. Arrivée le vendredi 5 juin, départ le lundi. Avec option prolongation.",
   },
   {
