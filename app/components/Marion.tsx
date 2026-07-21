@@ -99,30 +99,13 @@ function MarionGate({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-export default function Marion({ scandaleUnlocked }: { scandaleUnlocked?: boolean }) {
+export default function Marion() {
   const [unlocked, setUnlocked] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <section className="py-24 px-6 bg-[#05040a]">
       <div className="max-w-5xl mx-auto">
-        {!scandaleUnlocked ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex flex-col items-center justify-center py-16 px-6 text-center"
-          >
-            <div className="text-5xl mb-6">🔒</div>
-            <p className="font-mono text-xs tracking-[0.4em] text-pink-400 uppercase mb-4">
-              Niveau 8 — Accès bloqué
-            </p>
-            <h3 className="text-2xl font-black text-white mb-3">Dossier Marion</h3>
-            <p className="text-slate-500 text-sm font-mono">
-              Déverrouillez d'abord le Niveau 7 pour accéder à ce dossier.
-            </p>
-          </motion.div>
-        ) : (
         <>
         {/* Header */}
         <motion.div
@@ -260,7 +243,6 @@ export default function Marion({ scandaleUnlocked }: { scandaleUnlocked?: boolea
           </motion.div>
         )}
         </>
-        )}
       </div>
     </section>
   );

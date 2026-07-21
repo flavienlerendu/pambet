@@ -94,8 +94,13 @@ function VideoGate({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-export default function Resultat() {
+export default function Resultat({ onUnlock }: { onUnlock?: () => void }) {
   const [unlocked, setUnlocked] = useState(false);
+
+  const handleUnlock = () => {
+    setUnlocked(true);
+    onUnlock?.();
+  };
 
   return (
     <section className="py-24 px-6 bg-[#050508]">
@@ -122,7 +127,7 @@ export default function Resultat() {
 
         {/* Gate or Videos */}
         {!unlocked ? (
-          <VideoGate onSuccess={() => setUnlocked(true)} />
+          <VideoGate onSuccess={handleUnlock} />
         ) : (
           <div className="space-y-16">
             {videos.map((v, i) => (

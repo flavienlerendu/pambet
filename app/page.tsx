@@ -21,6 +21,7 @@ import Final from "./components/Final";
 export default function Home() {
   const [authenticated, setAuthenticated] = useState(false);
   const [booted, setBooted] = useState(false);
+  const [resultatUnlocked, setResultatUnlocked] = useState(false);
   const [scandaleUnlocked, setScandaleUnlocked] = useState(false);
 
   return (
@@ -50,11 +51,19 @@ export default function Home() {
           <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
           <div id="audios"><AudioWall /></div>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
-          <div id="resultat"><Resultat /></div>
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-900/30 to-transparent" />
-          <div id="scandale"><Scandale onUnlock={() => setScandaleUnlocked(true)} /></div>
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-900/30 to-transparent" />
-          <div id="marion"><Marion scandaleUnlocked={scandaleUnlocked} /></div>
+          <div id="resultat"><Resultat onUnlock={() => setResultatUnlocked(true)} /></div>
+          {resultatUnlocked && (
+            <>
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-900/30 to-transparent" />
+              <div id="scandale"><Scandale onUnlock={() => setScandaleUnlocked(true)} /></div>
+            </>
+          )}
+          {scandaleUnlocked && (
+            <>
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-900/30 to-transparent" />
+              <div id="marion"><Marion /></div>
+            </>
+          )}
           <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-900/30 to-transparent" />
           <div id="final"><Final /></div>
           <div className="text-center py-8 font-mono text-xs text-slate-800">
