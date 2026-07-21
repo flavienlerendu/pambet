@@ -19,7 +19,7 @@ const statCards = [
   },
   {
     label: "Photos partagées",
-    value: "102",
+    value: "113",
     sub: "Costumes, repérages, inspirations",
     color: "#10b981",
     icon: "📸",
@@ -33,7 +33,7 @@ const statCards = [
   },
   {
     label: "Vidéos échangées",
-    value: "5",
+    value: "6",
     sub: "Références, preuves, tutos",
     color: "#ec4899",
     icon: "🎬",

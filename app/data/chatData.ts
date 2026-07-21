@@ -60,9 +60,9 @@ export const monthlyActivity = [
 export const stats = {
   totalMessages: 1545,
   daysPrepared: 219,
-  photos: 102,
+  photos: 113,
   audios: 93,
-  videos: 5,
+  videos: 6,
   gifs: 11,
   visios: 12,
   plansAbandoned: 6,
@@ -387,6 +387,17 @@ export const allPhotos = [
   "00001791-VIDEO-2026-06-04-15-27-56.mp4",
   "WhatsApp Image 2026-06-04 at 17.32.15.jpeg",
   "WhatsApp Image 2026-06-04 at 18.01.23.jpeg",
+  "WhatsApp Image 2026-06-04 at 22.31.19.jpeg",
+  "WhatsApp Image 2026-06-05 at 09.16.08.jpeg",
+  "WhatsApp Image 2026-06-05 at 09.22.32.jpeg",
+  "WhatsApp Image 2026-06-05 at 09.31.15.jpeg",
+  "WhatsApp Image 2026-06-05 at 10.21.19.jpeg",
+  "WhatsApp Image 2026-06-05 at 11.04.05.jpeg",
+  "WhatsApp Image 2026-06-05 at 11.54.13.jpeg",
+  "00000222-Capture d'écran 2026-01-05 à 18.12.47.png",
+  "WhatsApp Video 2026-06-04 at 19.39.54.mp4",
+  "WhatsApp GIF 2026-06-05 at 11.43.01.gif",
+  "WhatsApp GIF 2026-06-05 at 11.45.39.gif",
 ];
 
 // Balanced selection: 4 per agent (1 for Charles who only sent 1)
