@@ -212,6 +212,22 @@ export default function Scandale({ onUnlock }: { onUnlock?: () => void }) {
                 L'histoire jugera. Et elle ne sera pas clémente.
               </p>
             </motion.div>
+
+            {/* Transition */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
+              className="text-center py-12"
+            >
+              <div className="text-8xl mb-6">🐑</div>
+              <p className="text-white font-black text-2xl md:text-3xl mb-2">
+                Mais revenons à nos moutons.
+              </p>
+              <p className="text-slate-500 font-mono text-sm">
+                Il y a quelqu'un de bien plus important que les argentins.
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </div>
