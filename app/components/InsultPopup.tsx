@@ -1,6 +1,9 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
+import Image from "next/image";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function InsultPopup({ insult, onClose }: { insult: string; onClose: () => void }) {
   useEffect(() => {
@@ -27,7 +30,15 @@ export default function InsultPopup({ insult, onClose }: { insult: string; onClo
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="text-center max-w-2xl"
           >
-            <p className="text-6xl mb-8">🤡</p>
+            <div className="mx-auto w-40 h-40 rounded-full overflow-hidden mb-6">
+              <Image
+                src={`${BASE}/media/${encodeURIComponent("ChatGPT Image 21 juil. 2026, 22_11_12.png")}`}
+                alt="mouton"
+                width={160}
+                height={160}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <p className="text-white font-black text-3xl md:text-5xl leading-tight">
               {insult}
             </p>

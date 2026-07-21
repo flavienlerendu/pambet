@@ -14,7 +14,6 @@ import Wrapped from "./components/Wrapped";
 import Gallery from "./components/Gallery";
 import AudioWall from "./components/AudioWall";
 import Resultat from "./components/Resultat";
-import Scandale from "./components/Scandale";
 import Marion from "./components/Marion";
 import Final from "./components/Final";
 
@@ -22,7 +21,6 @@ export default function Home() {
   const [authenticated, setAuthenticated] = useState(false);
   const [booted, setBooted] = useState(false);
   const [resultatUnlocked, setResultatUnlocked] = useState(false);
-  const [scandaleUnlocked, setScandaleUnlocked] = useState(false);
 
   return (
     <>
@@ -53,12 +51,6 @@ export default function Home() {
           <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
           <div id="resultat"><Resultat onUnlock={() => setResultatUnlocked(true)} /></div>
           {resultatUnlocked && (
-            <>
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-900/30 to-transparent" />
-              <div id="scandale"><Scandale onUnlock={() => setScandaleUnlocked(true)} /></div>
-            </>
-          )}
-          {scandaleUnlocked && (
             <>
               <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-900/30 to-transparent" />
               <div id="marion"><Marion /></div>
