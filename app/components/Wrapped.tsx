@@ -33,7 +33,7 @@ const statCards = [
   },
   {
     label: "Vidéos échangées",
-    value: "6",
+    value: "8",
     sub: "Références, preuves, tutos",
     color: "#ec4899",
     icon: "🎬",

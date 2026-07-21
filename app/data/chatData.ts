@@ -62,7 +62,7 @@ export const stats = {
   daysPrepared: 219,
   photos: 113,
   audios: 93,
-  videos: 6,
+  videos: 8,
   gifs: 11,
   visios: 12,
   plansAbandoned: 6,
@@ -396,6 +396,8 @@ export const allPhotos = [
   "WhatsApp Image 2026-06-05 at 11.54.13.jpeg",
   "00000222-Capture d'écran 2026-01-05 à 18.12.47.png",
   "WhatsApp Video 2026-06-04 at 19.39.54.mp4",
+  "WhatsApp Video 2026-06-04 at 20.11.02.mp4",
+  "WhatsApp Video 2026-06-04 at 20.58.39.mp4",
   "WhatsApp GIF 2026-06-05 at 11.43.01.gif",
   "WhatsApp GIF 2026-06-05 at 11.45.39.gif",
 ];
