@@ -13,6 +13,7 @@ function ScandaleGate({ onSuccess }: { onSuccess: () => void }) {
   const [insult, setInsult] = useState("");
 
   const submit = () => {
+    if (insult) return;
     if (value.toLowerCase().trim() === "chantal") {
       onSuccess();
     } else {

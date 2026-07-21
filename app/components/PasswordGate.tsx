@@ -10,6 +10,7 @@ export default function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
   const [insult, setInsult] = useState("");
 
   const submit = () => {
+    if (insult) return;
     if (value.toLowerCase().trim() === "thermomix") {
       onSuccess();
     } else {
