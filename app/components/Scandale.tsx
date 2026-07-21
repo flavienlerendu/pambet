@@ -99,31 +99,24 @@ export default function Scandale() {
   return (
     <section className="py-24 px-6 bg-[#080508]">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <p className="font-mono text-xs tracking-[0.4em] text-orange-500 uppercase mb-4">
-            Dossier Noir — Niveau 7
-          </p>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-            Le <span className="text-orange-500">Scandale</span>
-          </h2>
-          <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed mt-2">
-            Attendez 2 minutes. Le mariage de Max, c'est bien. C'est même magnifique.
-            Mais il y a bien plus important pour l'humanité en ce moment.
-            <span className="text-orange-400 font-bold"> Notre haine des footballeurs argentins.</span>
-            <br />
-            Passons quelques instants sur ce scandale.
-          </p>
-        </motion.div>
-
         {!unlocked ? (
-          <ScandaleGate onSuccess={() => setUnlocked(true)} />
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-12"
+            >
+              <p className="font-mono text-xs tracking-[0.4em] text-orange-500 uppercase mb-4">
+                Dossier Noir — Niveau 7
+              </p>
+              <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+                Dossier <span className="text-orange-500">Classifié</span>
+              </h2>
+            </motion.div>
+            <ScandaleGate onSuccess={() => setUnlocked(true)} />
+          </>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -131,6 +124,22 @@ export default function Scandale() {
             transition={{ duration: 0.6 }}
             className="space-y-12"
           >
+            {/* Header revealed after unlock */}
+            <div className="text-center mb-12">
+              <p className="font-mono text-xs tracking-[0.4em] text-orange-500 uppercase mb-4">
+                Dossier Noir — Niveau 7
+              </p>
+              <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+                Le <span className="text-orange-500">Scandale</span>
+              </h2>
+              <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed mt-2">
+                Attendez 2 minutes. Le mariage de Max, c'est bien. C'est même magnifique.
+                Mais il y a bien plus important pour l'humanité en ce moment.
+                <span className="text-orange-400 font-bold"> Notre haine des footballeurs argentins.</span>
+                <br />
+                Passons quelques instants sur ce scandale.
+              </p>
+            </div>
             {/* Alert banner */}
             <div className="border border-orange-500/40 bg-orange-500/5 rounded-xl px-6 py-4 flex items-center gap-4">
               <span className="text-2xl">🚨</span>
