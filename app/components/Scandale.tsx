@@ -93,8 +93,13 @@ const allegations = [
   },
 ];
 
-export default function Scandale() {
+export default function Scandale({ onUnlock }: { onUnlock?: () => void }) {
   const [unlocked, setUnlocked] = useState(false);
+
+  const handleUnlock = () => {
+    setUnlocked(true);
+    onUnlock?.();
+  };
 
   return (
     <section className="py-24 px-6 bg-[#080508]">
@@ -115,7 +120,7 @@ export default function Scandale() {
                 Dossier <span className="text-orange-500">Classifié</span>
               </h2>
             </motion.div>
-            <ScandaleGate onSuccess={() => setUnlocked(true)} />
+            <ScandaleGate onSuccess={handleUnlock} />
           </>
         ) : (
           <motion.div
